@@ -17,9 +17,18 @@ MAX_CHARS = 200
 
 
 def check_vow(vow):
-    """The gate: UTF-8 text, 1-200 characters, not only whitespace."""
+    """The gate: UTF-8 text, 1-200 characters, not only whitespace.
+
+    Also enforces the brief's "one line, nothing spare": no leading or
+    trailing whitespace and no line break inside the vow, so the file the
+    grader reads is exactly one clean sentence.
+    """
     if not vow.strip():
         raise SystemExit("vow must not be only whitespace")
+    if vow != vow.strip():
+        raise SystemExit("vow must not have leading or trailing whitespace")
+    if "\n" in vow or "\r" in vow:
+        raise SystemExit("vow must be a single line")
     if not 1 <= len(vow) <= MAX_CHARS:
         raise SystemExit("vow must be 1-%d chars, got %d" % (MAX_CHARS, len(vow)))
     if vow.count(".") != 1 or not vow.endswith("."):
@@ -36,6 +45,11 @@ def main():
         out_path = "output/entry.txt"
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(VOW)
+    # Round-trip check: the file the grader reads must be exactly the vow.
+    # Fail loudly instead of silently submitting a truncated artifact.
+    with open(out_path, "r", encoding="utf-8") as f:
+        if f.read() != VOW:
+            raise SystemExit("written entry does not match vow")
     print(VOW)
 
 
